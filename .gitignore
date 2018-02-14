@@ -35,7 +35,7 @@ cmake-build-debug/
 ## File-based project format:
 *.iws
 *.txt
-*.iml
+# *.iml
 *.dat
 
 ## Plugin-specific files:
@@ -109,4 +109,3 @@ hs_err_pid*
 .nfs*
 
 # End of https://www.gitignore.io/api/git,java,linux,intellij
-asd.txt
