@@ -3,6 +3,7 @@ package mk.ukim.finki.aud1;
 import mk.ukim.finki.aud1.filters.DirectoryFilter;
 
 import java.io.File;
+import java.util.Arrays;
 
 /**
  * @author Kostadin Krstev
@@ -14,7 +15,7 @@ public class DirList {
         File file = new File(absolutePath);
         if (file.exists()) {
             File[] subfiles = file.listFiles();
-            if (subfiles != null) {
+            if (subfiles != null && subfiles.length > 0) {
                 for (File subfile : subfiles) {
                     System.out.println(prefix + "" + subfile.getName());
                     if (subfile.isDirectory())
