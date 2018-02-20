@@ -38,6 +38,7 @@ public class DirList {
             list = file.list();
         else
             list = file.list(new DirectoryFilter(args[0]));
+//            list = file.list((dir, name) -> name.contains(args[0]));
         if (list != null)
             for (String str : list)
                 System.out.println(str);
