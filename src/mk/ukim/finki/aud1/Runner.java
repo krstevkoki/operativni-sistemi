@@ -34,11 +34,11 @@ public class Runner {
                     tester,
                     new JavaClassesFilter(),
                     new FileNamePrinter(),
+//                  (out, file) -> System.out.println(file.getAbsolutePath()),
                     System.out);
         else System.out.println("Given directory might not exists or its a file");
 
         /*status = manager.moveAndRenameFile(tester, "test-io", "bsd.txt");
         System.out.println(status);*/
-
     }
 }
