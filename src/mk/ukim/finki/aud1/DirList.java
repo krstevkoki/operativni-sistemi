@@ -3,7 +3,6 @@ package mk.ukim.finki.aud1;
 import mk.ukim.finki.aud1.filters.DirectoryFilter;
 
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * @author Kostadin Krstev
@@ -17,12 +16,19 @@ public class DirList {
             File[] subfiles = file.listFiles();
             if (subfiles != null && subfiles.length > 0) {
                 for (File subfile : subfiles) {
-                    System.out.println(prefix + "" + subfile.getName());
+                    System.out.println(prefix + "" + subfile.getName() + " " + getPermissions(subfile));
                     if (subfile.isDirectory())
                         listFilesRecursively(subfile.getAbsolutePath(), "\t" + prefix);
                 }
             }
         }
+    }
+
+    public static String getPermissions(File f) {
+        return String.format("%s%s%s",
+                f.canRead() ? "r" : "-",
+                f.canWrite() ? "w" : "-",
+                f.canExecute() ? "e" : "-");
     }
 
     public static void main(String[] args) {
