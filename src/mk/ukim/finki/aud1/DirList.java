@@ -10,6 +10,20 @@ import java.io.File;
 public class DirList {
     private static final String PATH = "/home/krstevkoki/ama_mjau/";
 
+    public static void listFilesRecursively(String absolutePath, String prefix) {
+        File file = new File(absolutePath);
+        if (file.exists()) {
+            File[] subfiles = file.listFiles();
+            if (subfiles != null) {
+                for (File subfile : subfiles) {
+                    System.out.println(prefix + "" + subfile.getName());
+                    if (subfile.isDirectory())
+                        listFilesRecursively(subfile.getAbsolutePath(), "\t" + prefix);
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) {
         File file = new File(PATH);
         String[] list;
@@ -20,5 +34,9 @@ public class DirList {
         if (list != null)
             for (String str : list)
                 System.out.println(str);
+
+        System.out.println();
+
+        listFilesRecursively(file.getAbsolutePath(), "|");
     }
 }
