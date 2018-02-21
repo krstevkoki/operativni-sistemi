@@ -31,6 +31,22 @@ public class DirList {
                 f.canExecute() ? "e" : "-");
     }
 
+    public static void deleteFolderRecursively(File file) {
+        if (file.exists()) {
+            File[] files = file.listFiles();
+            assert files != null;
+            for (File f : files) {
+                if (f.isFile())
+                    f.delete();
+                if (f.isDirectory()) {
+                    deleteFolderRecursively(f);
+                    f.delete();
+                }
+            }
+            file.delete();
+        }
+    }
+
     public static void main(String[] args) {
         File file = new File(PATH);
         String[] list;
@@ -46,5 +62,7 @@ public class DirList {
         System.out.println();
 
         listFilesRecursively(file.getAbsolutePath(), "|");
+
+        deleteFolderRecursively(new File("/home/krstevkoki/Desktop/A"));
     }
 }
