@@ -42,7 +42,7 @@ public class HW01_2 {
     private static void reverseContentFromFile(File source, File dest) throws IOException {
         if (source != null && dest != null && source.exists() && source.isFile()) {
             try (RandomAccessFile raf = new RandomAccessFile(source, "r");
-                 FileOutputStream output = new FileOutputStream(dest)
+                 OutputStream output = new FileOutputStream(dest)
             ) {
                 long bytesRemaining = raf.length();
                 raf.seek(bytesRemaining);
