@@ -41,8 +41,8 @@ public class Naizmenicno {
                 f1();
                 semaphore2.release();
             } else {
-                semaphore1.release();
                 f1();
+                semaphore1.release();
             }
         }
 
