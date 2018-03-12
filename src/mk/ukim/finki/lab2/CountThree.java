@@ -1,5 +1,6 @@
 package mk.ukim.finki.lab2;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Scanner;
@@ -32,10 +33,10 @@ public class CountThree {
 
         public void count(int[] data) throws InterruptedException {
             // da se implementira
-            int counter = 0;
-            for (int num : data)
-                if (num == 3)
-                    ++counter;
+            int counter = (int) Arrays.stream(data)
+                    .parallel()
+                    .filter(num -> num == 3)
+                    .count();
             semaphore.acquire();
             count += counter;
             semaphore.release();
