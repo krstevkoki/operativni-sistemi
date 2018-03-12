@@ -106,6 +106,10 @@ public class Naizmenicno {
         System.out.println("Vnesete za kolku poveke sakate da se izvrsi f1()");
         Scanner s = new Scanner(System.in);
         int n = s.nextInt();
+        if (n < 1) {
+            System.err.println("Vnesete broj pogolem od 0");
+            System.exit(-1);
+        }
         init(n);
 
         HashSet<Thread> threads = new HashSet<>();
