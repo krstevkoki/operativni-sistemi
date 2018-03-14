@@ -13,8 +13,10 @@ public class Naizmenicno {
     private int f2count;
     private int maxDifference = 0;
     private int count;
-    private Semaphore semaphore1;
-    private Semaphore semaphore2;
+
+    private static Semaphore semaphore1;
+    private static Semaphore semaphore2;
+    private static final Object mutex = new Object();
 
     public Naizmenicno() {
     }
@@ -26,7 +28,8 @@ public class Naizmenicno {
     public void init(int count) {
         // da se implementira
         this.count = count;
-        semaphore1 = new Semaphore(1);
+        this.maxDifference = count;
+        semaphore1 = new Semaphore(count);
         semaphore2 = new Semaphore(0);
     }
 
@@ -35,15 +38,19 @@ public class Naizmenicno {
         }
 
         public void executeF1() throws InterruptedException {
-            // da se implementira
-            semaphore1.acquire();
-            if (f1count < NUM_RUNS) {
-                f1();
-                semaphore2.release();
-            } else {
-                f1();
-                semaphore1.release();
+            synchronized (mutex) {
+                if (f1count == 0) {  // prviot thread da izvrse count+1 pat f1()
+                    semaphore1.acquire(count);
+                    for (int i = 1; i <= count; ++i) {
+                        f1();
+                    }
+                    f1();
+                } else {
+                    semaphore1.acquire();
+                    f1();
+                }
             }
+            semaphore2.release();
         }
 
         @Override
@@ -118,10 +125,6 @@ public class Naizmenicno {
             F2Thread f2 = new F2Thread();
             threads.add(f1);
             threads.add(f2);
-        }
-
-        for (int i = 0; i < count; ++i) {
-            threads.add(new F1Thread());
         }
 
         for (Thread t : threads) {
