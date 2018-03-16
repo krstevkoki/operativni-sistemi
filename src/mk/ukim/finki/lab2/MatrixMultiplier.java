@@ -40,7 +40,7 @@ public class MatrixMultiplier {
 
     public static void main(String[] args) throws InterruptedException {
         MatrixMultiplier matrixMultiplier = new MatrixMultiplier(getBigHairyMatrix());
-        // matrixMultiplier.printMatrix(matrixMultiplier.matrix); // use with cation
+        // matrixMultiplier.printMatrix(matrixMultiplier.matrix);  // use with caution
         matrixMultiplier.start();
 
     }
@@ -62,7 +62,7 @@ public class MatrixMultiplier {
         for (Thread thread : threads)
             thread.join();
 
-        printMatrix(newMatrix);
+        // printMatrix(newMatrix);  // use with caution
     }
 
     private void printMatrix(int[][] matrix) {
