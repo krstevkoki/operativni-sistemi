@@ -9,7 +9,7 @@ import java.util.concurrent.Semaphore;
 
 public class TemplateNumRunsAndNumInstances {
     // TODO: definirajte gi semaforite i ostanatite promenlivi ovde (mora site da se static)
-    private static Semaphore fifthCustomerSemaphore;
+    private static Semaphore fiveCustomersSemaphore;
     private static Semaphore customersSemaphore;
     private static Semaphore canCustomerEnterSemaphore;
     private static Semaphore customerOnTheChairSemaphore;
@@ -30,7 +30,7 @@ public class TemplateNumRunsAndNumInstances {
     public static void init(int numBarbers) {
         customersSemaphore = new Semaphore(5);
         canCustomerEnterSemaphore = new Semaphore(0);
-        fifthCustomerSemaphore = new Semaphore(0);
+        fiveCustomersSemaphore = new Semaphore(0);
         customerOnTheChairSemaphore = new Semaphore(0);
         customerPaidSemaphore = new Semaphore(0);
         customerDoneSemaphore = new Semaphore(0);
@@ -58,7 +58,7 @@ public class TemplateNumRunsAndNumInstances {
         public void execute() throws InterruptedException {
             // koga 5tiot klient ke notificira, berberot treba da se razbudi
             if (numCustomers == 0) {
-                fifthCustomerSemaphore.acquire(5);
+                fiveCustomersSemaphore.acquire(5);
                 state.barberWakeUp();
             }
 
@@ -99,7 +99,7 @@ public class TemplateNumRunsAndNumInstances {
             // dokolku e pettiot, go budi berberot
             state.customerArrived();
             synchronized (this) {
-                fifthCustomerSemaphore.release();
+                fiveCustomersSemaphore.release();
                 customerHereSemaphore.release();
                 numCustomers++;
             }
