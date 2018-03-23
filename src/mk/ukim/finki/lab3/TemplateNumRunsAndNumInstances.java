@@ -9,15 +9,13 @@ import java.util.concurrent.Semaphore;
 
 public class TemplateNumRunsAndNumInstances {
     // TODO: definirajte gi semaforite i ostanatite promenlivi ovde (mora site da se static)
-    private static Semaphore fiveCustomersSemaphore;
+    private static Semaphore barberWakeUpSemaphore;
     private static Semaphore customersSemaphore;
     private static Semaphore canCustomerEnterSemaphore;
     private static Semaphore customerOnTheChairSemaphore;
     private static Semaphore customerPaidSemaphore;
     private static Semaphore customerDoneSemaphore;
     private static Semaphore customerHereSemaphore;
-    private static int numCustomers;
-
 
     /**
      * <p>
@@ -26,16 +24,14 @@ public class TemplateNumRunsAndNumInstances {
      * </p>
      * TODO: da se implementira
      */
-
     public static void init(int numBarbers) {
         customersSemaphore = new Semaphore(5);
+        barberWakeUpSemaphore = new Semaphore(0);
         canCustomerEnterSemaphore = new Semaphore(0);
-        fiveCustomersSemaphore = new Semaphore(0);
+        customerHereSemaphore = new Semaphore(0);
         customerOnTheChairSemaphore = new Semaphore(0);
         customerPaidSemaphore = new Semaphore(0);
         customerDoneSemaphore = new Semaphore(0);
-        customerHereSemaphore = new Semaphore(0);
-        numCustomers = 0;
     }
 
     public static class Barber extends TemplateThread {
@@ -53,29 +49,22 @@ public class TemplateNumRunsAndNumInstances {
          * </p>
          * TODO: da se implementira
          */
-
         @Override
         public void execute() throws InterruptedException {
             // koga 5tiot klient ke notificira, berberot treba da se razbudi
-            if (numCustomers == 0) {
-                fiveCustomersSemaphore.acquire(5);
-                state.barberWakeUp();
+            barberWakeUpSemaphore.acquire(5);
+            state.barberWakeUp();
+            for (int i = 0; i < 5; ++i) {
+                customerHereSemaphore.acquire();
+                state.barberCallCustomer();
+                canCustomerEnterSemaphore.release();
+                customerOnTheChairSemaphore.acquire();
+                state.cutHair();
+                customerDoneSemaphore.release();
+                customerPaidSemaphore.acquire();
             }
-
-            // koga klientot ke pristigne, go vika klientot da vleze
-            customerHereSemaphore.acquire();
-            state.barberCallCustomer();
-            canCustomerEnterSemaphore.release();
-
-            // koga klientot ke vleze, go potstrizuva
-            customerOnTheChairSemaphore.acquire();
-            state.cutHair();
-            customerDoneSemaphore.release();
-
-            customerPaidSemaphore.acquire();
-            // proveruva dali ima klienti koi cekaat, ako nema, zaspiva
-            if (numCustomers == 0)
-                state.barberGoToSleep();
+            state.barberGoToSleep();
+            customersSemaphore.release(5);
         }
     }
 
@@ -84,38 +73,32 @@ public class TemplateNumRunsAndNumInstances {
             super(numRuns);
         }
 
-
         /**
          * <p>
          * Da se implementira odnesuvanjeto na ucesnikot spored uslovite na
          * zadacata.
          * </p>
          */
-
-
         @Override
         public void execute() throws InterruptedException {
             customersSemaphore.acquire();
             // dokolku e pettiot, go budi berberot
             state.customerArrived();
-            synchronized (this) {
-                fiveCustomersSemaphore.release();
-                customerHereSemaphore.release();
-                numCustomers++;
-            }
+
+            barberWakeUpSemaphore.release();
+            customerHereSemaphore.release();
+
             // koga ke bide povikan, vleguva
             canCustomerEnterSemaphore.acquire();
-            state.customerEntry();
 
             // klientot vlegol vo berbernicata i e spremen za potstrizuvanje
+            state.customerEntry();
             customerOnTheChairSemaphore.release();
 
             // koga ke go potstrizat, plakja
             customerDoneSemaphore.acquire();
             state.customerPay();
-            numCustomers--;
             customerPaidSemaphore.release();
-            customersSemaphore.release();
         }
     }
 
