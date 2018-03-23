@@ -52,6 +52,7 @@ public class TribeDinner {
                 takeMealSemaphore.acquire();
                 state.fillPlate();
                 takeMealSemaphore.release();
+                state.eat();
             }
         }
     }
