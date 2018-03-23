@@ -49,6 +49,9 @@ public class TribeDinner {
             } else {
                 state.cook();
                 lock.unlock();
+                takeMealSemaphore.acquire();
+                state.fillPlate();
+                takeMealSemaphore.release();
             }
         }
     }
