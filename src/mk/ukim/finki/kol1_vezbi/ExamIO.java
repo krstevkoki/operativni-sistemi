@@ -16,6 +16,7 @@ public class ExamIO {
     private static final String DESTINATION = "/home/krstevkoki/Desktop/data.ser";
     private static final int ELEMENTS_LENGTH = 23;
     private static final int BYTE_LENGTH = 1;
+    private static final int ARRAYS_NUM = 10;
 
     private static void copyLargeTxtFiles(String from, String to, long size) throws IOException {
         File folderFrom = new File(from);
@@ -68,12 +69,15 @@ public class ExamIO {
     }
 
     private static byte[] deserializeDataAtPosition(String source, long position, long elementLength) throws IOException {
+        if (position < 1) {
+            System.err.println("Position must be greater than 0");
+            return null;
+        }
         byte[] b = new byte[(int) elementLength];
         try (RandomAccessFile raf = new RandomAccessFile(new File(source), "r")) {
-            raf.seek(position);
-            for (int i = 0; i < elementLength; ++i) {
+            raf.seek((BYTE_LENGTH * elementLength) * (position - 1));
+            for (int i = 0; i < elementLength; ++i)
                 b[i] = raf.readByte();
-            }
         }
         return b;
     }
@@ -83,14 +87,14 @@ public class ExamIO {
         copyLargeTxtFiles(FROM_PATH, TO_PATH, random.nextLong() % 541);
 
         List<byte[]> data = new ArrayList<>();
-        for (int i = 0; i < 10; ++i) {
+        for (int i = 0; i < ARRAYS_NUM; ++i) {
             byte[] temp = new byte[ELEMENTS_LENGTH];
             random.nextBytes(temp);
 //            Arrays.fill(temp, (byte) (i + 1));
             data.add(temp);
         }
         serializeData(DESTINATION, data);
-        byte[] b = deserializeDataAtPosition(DESTINATION, (ELEMENTS_LENGTH * BYTE_LENGTH) * 3, ELEMENTS_LENGTH);
+        byte[] b = deserializeDataAtPosition(DESTINATION, random.nextInt(ARRAYS_NUM) + 1, ELEMENTS_LENGTH);
         System.out.println(Arrays.toString(b));
     }
 }
