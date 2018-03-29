@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Poker {
     private static Semaphore playersSemaphore;
-    private static Semaphore cardsDealedSemaphore;
+    private static Semaphore cardsDealtSemaphore;
     private static Semaphore roundEndedSemaphore;
     private static Semaphore canLeaveSemaphore;
 
@@ -20,7 +20,7 @@ public class Poker {
 
     public static void init() {
         playersSemaphore = new Semaphore(6);
-        cardsDealedSemaphore = new Semaphore(0);
+        cardsDealtSemaphore = new Semaphore(0);
         roundEndedSemaphore = new Semaphore(0);
         canLeaveSemaphore = new Semaphore(0);
 
@@ -46,7 +46,7 @@ public class Poker {
                 lock.unlock();
 
                 state.dealCards();
-                cardsDealedSemaphore.release(5);
+                cardsDealtSemaphore.release(5);
 
                 state.play();
 
@@ -58,7 +58,7 @@ public class Poker {
             } else {
                 lock.unlock();
 
-                cardsDealedSemaphore.acquire();  // x5 waiting
+                cardsDealtSemaphore.acquire();  // x5 waiting
                 state.play();
                 roundEndedSemaphore.release();  // x5 releasing
 
