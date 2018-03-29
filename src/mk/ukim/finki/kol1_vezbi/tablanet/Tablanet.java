@@ -1,14 +1,34 @@
 package mk.ukim.finki.kol1_vezbi.tablanet;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Kostadin Krstev
  */
 public class Tablanet {
+    private static Semaphore takeSeatSemaphore;
+    private static Semaphore playersHereSemaphore;
+    private static Semaphore playersDoneSemaphore;
+    private static Semaphore cardsDealtSemaphore;
+    private static Semaphore newCycleSemaphore;
 
+    private static Lock lock;
+
+    private static int playersCounter;
 
     public static void init() {
+        takeSeatSemaphore = new Semaphore(4);  // samo 4 sednuvaat na masata
+        playersHereSemaphore = new Semaphore(0);  // chetvrtiot igrac go vika dilerot da podeli karti
+        cardsDealtSemaphore = new Semaphore(0);  // kartite se podeleni
+        playersDoneSemaphore = new Semaphore(0);  // igracite zavrsile so igrata
+        newCycleSemaphore = new Semaphore(0);  // se cekaat site 20 igraci da zavrsat, za da pocne nov ciklus
+
+        lock = new ReentrantLock();
+
+        playersCounter = 0;
     }
 
     public static class Dealer extends TemplateThread {
@@ -18,8 +38,13 @@ public class Tablanet {
 
         @Override
         public void execute() throws InterruptedException {
+            playersHereSemaphore.acquire(4);  // waiting for 4 players - per group
             state.dealCards();
+            cardsDealtSemaphore.release(4);  // x4 releasing - per group
+
+            playersDoneSemaphore.acquire(4);  // waiting for 4 players - per group
             state.nextGroup();
+            takeSeatSemaphore.release(4);  // x4 releasing for the next group
         }
     }
 
@@ -28,12 +53,29 @@ public class Tablanet {
             super(numRuns);
         }
 
-
         @Override
         public void execute() throws InterruptedException {
+            takeSeatSemaphore.acquire();  // x4 acquiring - per group
+
             state.playerSeat();
+            playersHereSemaphore.release();  // x4 releasing - per group
+
+            cardsDealtSemaphore.acquire();  // x4 waiting - per group
             state.play();
-            state.endCycle();
+            playersDoneSemaphore.release();  // x1 releasing - per group
+
+            lock.lock();
+            ++playersCounter;
+            if (playersCounter == 20) {
+                playersCounter = 0;
+                lock.unlock();
+
+                state.endCycle();
+                newCycleSemaphore.release(19);
+            } else {
+                lock.unlock();
+                newCycleSemaphore.acquire();  // x19 waiting
+            }
         }
     }
 
