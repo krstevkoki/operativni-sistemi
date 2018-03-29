@@ -1,13 +1,36 @@
 package mk.ukim.finki.kol1_vezbi.kindergarten_show;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Kostadin Krstev
  */
 public class KindergartenShow {
+    private static Semaphore sceneEnterSemaphore;
+    private static Semaphore canPresentSemaphore;
+    private static Semaphore groupEndedSemaphore;
+    private static Semaphore cycleEndedSemaphore;
+
+    private static Lock lock1;
+    private static Lock lock2;
+
+    private static int perGroupChildrenCounter;
+    private static int totalChildrenCounter;
 
     public static void init() {
+        sceneEnterSemaphore = new Semaphore(6);
+        canPresentSemaphore = new Semaphore(0);
+        groupEndedSemaphore = new Semaphore(0);
+        cycleEndedSemaphore = new Semaphore(0);
+
+        lock1 = new ReentrantLock();
+        lock2 = new ReentrantLock();
+
+        perGroupChildrenCounter = 0;
+        totalChildrenCounter = 0;
     }
 
     public static class Child extends TemplateThread {
@@ -18,9 +41,46 @@ public class KindergartenShow {
 
         @Override
         public void execute() throws InterruptedException {
+            sceneEnterSemaphore.acquire();  // x6 waiting
             state.participantEnter();
-            state.endGroup();
-            state.endCycle();
+
+            lock1.lock();
+            ++perGroupChildrenCounter;
+            if (perGroupChildrenCounter == 6) {
+                canPresentSemaphore.release(5);
+                lock1.unlock();
+            } else {
+                lock1.unlock();
+                canPresentSemaphore.acquire();  // x5 waiting
+            }
+
+            state.present();
+
+            lock1.lock();
+            --perGroupChildrenCounter;
+            if (perGroupChildrenCounter == 0) {
+                state.endGroup();
+                groupEndedSemaphore.release(5);
+
+                sceneEnterSemaphore.release(6);
+                lock1.unlock();
+            } else {
+                lock1.unlock();
+                groupEndedSemaphore.acquire();  // x5 waiting
+            }
+
+            lock2.lock();
+            ++totalChildrenCounter;
+            if (totalChildrenCounter == 24) {  // 4 groups * 6 children = 24
+                totalChildrenCounter = 0;
+                state.endCycle();
+                cycleEndedSemaphore.release(23);
+                lock2.unlock();
+            } else {
+                lock2.unlock();
+                cycleEndedSemaphore.acquire();  // x23 waiting
+            }
+
         }
     }
 
@@ -523,7 +583,7 @@ abstract class ProblemExecution {
 
         // wait threads to finish
         for (Thread t : threads) {
-            t.join(1000);
+            t.join(0);
         }
     }
 
