@@ -1,15 +1,32 @@
 package mk.ukim.finki.kol1_vezbi.concert;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
 
 /**
  * @author Kostadin Krstev
  */
 public class Concert {
+    private static Semaphore baritonesSemaphore;  // x3
+    private static Semaphore tenorsSemaphore;  // x3
+    private static Semaphore baritoneHereSemaphore;
+    private static Semaphore tenorHereSemaphore;
 
+    private static Semaphore groupFormedSemaphore;
+    private static Semaphore canPlaySemaphore;
+    private static Semaphore performDoneSemaphore;
+    private static Semaphore voteCompletedSemaphore;
 
     public static void init() {
+        baritonesSemaphore = new Semaphore(3);
+        tenorsSemaphore = new Semaphore(3);
+        baritoneHereSemaphore = new Semaphore(0);
+        tenorHereSemaphore = new Semaphore(0);
 
+        groupFormedSemaphore = new Semaphore(0);
+        canPlaySemaphore = new Semaphore(0);
+        performDoneSemaphore = new Semaphore(0);
+        voteCompletedSemaphore = new Semaphore(0);
     }
 
     public static class Performer extends TemplateThread {
@@ -19,8 +36,17 @@ public class Concert {
 
         @Override
         public void execute() throws InterruptedException {
+            groupFormedSemaphore.acquire(6);  // 3 baritones & 3 tenors
+
+            canPlaySemaphore.release(6);  // 3 baritones & 3 tenors
             state.perform();
+
+            performDoneSemaphore.acquire(6);  // 3 baritones & 3 tenors
             state.vote();
+            voteCompletedSemaphore.release(6);  // 3 baritones & 3 tenors
+
+            baritonesSemaphore.release(3);  // 3 baritones
+            tenorsSemaphore.release(3); // 3 tenors
         }
     }
 
@@ -31,8 +57,19 @@ public class Concert {
 
         @Override
         public void execute() throws InterruptedException {
-            state.formBackingVocals();
+            baritonesSemaphore.acquire();
+
+            baritoneHereSemaphore.release();  // bariton is here
+            tenorHereSemaphore.acquire();  // waiting for tenor
+            state.formBackingVocals();  // a group can be formed
+
+            groupFormedSemaphore.release();  // x3 releasing
+
+            canPlaySemaphore.acquire();  // x3 acquiring
             state.perform();
+            performDoneSemaphore.release();  // x3 releasing
+
+            voteCompletedSemaphore.acquire();  // x3 acquiring
         }
     }
 
@@ -43,8 +80,19 @@ public class Concert {
 
         @Override
         public void execute() throws InterruptedException {
-            state.formBackingVocals();
+            tenorsSemaphore.acquire();
+
+            tenorHereSemaphore.release();  // tenor is here
+            baritoneHereSemaphore.acquire();  // baritone is waiting
+            state.formBackingVocals();  // a group can be formed
+
+            groupFormedSemaphore.release(); // x3 releasing
+
+            canPlaySemaphore.acquire();  // x3 acquiring
             state.perform();
+            performDoneSemaphore.release();  // x3 releasing
+
+            voteCompletedSemaphore.acquire();  // x3 acquiring
         }
     }
 
