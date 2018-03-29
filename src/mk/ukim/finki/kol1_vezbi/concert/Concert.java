@@ -7,6 +7,8 @@ import java.util.concurrent.Semaphore;
  * @author Kostadin Krstev
  */
 public class Concert {
+    private static Semaphore performerSemaphore;
+
     private static Semaphore baritonesSemaphore;  // x3
     private static Semaphore tenorsSemaphore;  // x3
     private static Semaphore baritoneHereSemaphore;
@@ -18,6 +20,8 @@ public class Concert {
     private static Semaphore voteCompletedSemaphore;
 
     public static void init() {
+        performerSemaphore = new Semaphore(1);
+
         baritonesSemaphore = new Semaphore(3);
         tenorsSemaphore = new Semaphore(3);
         baritoneHereSemaphore = new Semaphore(0);
@@ -36,6 +40,8 @@ public class Concert {
 
         @Override
         public void execute() throws InterruptedException {
+            performerSemaphore.acquire();
+
             groupFormedSemaphore.acquire(6);  // 3 baritones & 3 tenors
 
             canPlaySemaphore.release(6);  // 3 baritones & 3 tenors
@@ -47,6 +53,8 @@ public class Concert {
 
             baritonesSemaphore.release(3);  // 3 baritones
             tenorsSemaphore.release(3); // 3 tenors
+
+            performerSemaphore.release();
         }
     }
 
