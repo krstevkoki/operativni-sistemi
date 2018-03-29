@@ -1,14 +1,32 @@
 package mk.ukim.finki.kol1_vezbi.poker;
 
 import java.util.*;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Kostadin Krstev
  */
 public class Poker {
+    private static Semaphore playersSemaphore;
+    private static Semaphore cardsDealedSemaphore;
+    private static Semaphore roundEndedSemaphore;
+    private static Semaphore canLeaveSemaphore;
+
+    private static Lock lock;
+
+    private static int numPlayers;
 
     public static void init() {
+        playersSemaphore = new Semaphore(6);
+        cardsDealedSemaphore = new Semaphore(0);
+        roundEndedSemaphore = new Semaphore(0);
+        canLeaveSemaphore = new Semaphore(0);
 
+        lock = new ReentrantLock();
+
+        numPlayers = 0;
     }
 
     public static class Player extends TemplateThread {
@@ -18,19 +36,42 @@ public class Poker {
 
         @Override
         public void execute() throws InterruptedException {
+            playersSemaphore.acquire();
             state.playerSeat();
 
-            state.dealCards();
+            lock.lock();
+            ++numPlayers;
+            if (numPlayers == 6) {
+                numPlayers = 0;
+                lock.unlock();
 
-            state.play();
+                state.dealCards();
+                cardsDealedSemaphore.release(5);
 
-            state.endRound();
+                state.play();
+
+                roundEndedSemaphore.acquire(5);
+                state.endRound();
+
+                canLeaveSemaphore.release(5);
+                playersSemaphore.release(6);
+            } else {
+                lock.unlock();
+
+                cardsDealedSemaphore.acquire();  // x5 waiting
+                state.play();
+                roundEndedSemaphore.release();  // x5 releasing
+
+                canLeaveSemaphore.acquire();  // x5 waiting
+            }
         }
-
     }
 
     public static void main(String[] args) {
+//        long start = System.currentTimeMillis();
         run();
+//        long end = System.currentTimeMillis();
+//        System.out.printf("Time needed: %.3f", (end - start) / 1000.0);  // in seconds
     }
 
 
