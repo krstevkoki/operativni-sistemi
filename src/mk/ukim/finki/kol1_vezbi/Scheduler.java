@@ -11,13 +11,13 @@ public class Scheduler extends Thread {
     public static Random random = new Random();
     static List<Process> scheduled = new ArrayList<>();
     private final static int TIME_TO_WAIT = 20000;
+    private final static int PROCESSES_NUMBER = 100;
     private final static Object lock = new Object();
 
     public static void main(String[] args) throws InterruptedException {
         // TODO: kreirajte 100 Process thread-ovi i registrirajte gi
-        for (int i = 0; i < 100; ++i) {
+        for (int i = 0; i < PROCESSES_NUMBER; ++i)
             Scheduler.register(new Process());
-        }
 
         // TODO: kreirajte Scheduler i startuvajte go negovoto pozadinsko izvrsuvanje
         Scheduler scheduler = new Scheduler();
